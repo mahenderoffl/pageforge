@@ -1,0 +1,1083 @@
+{% extends "base.html" %}
+
+{% block title %}User Analytics - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- Admin Header -->
+    <section class="admin-header">
+        <div class="container">
+            <div class="admin-nav">
+                <h1 class="admin-title">
+                    <i class="fas fa-chart-line"></i>
+                    User Analytics
+                    <small class="developer-tag">Admin Dashboard</small>
+                </h1>
+                <div class="admin-actions">
+                    <a href="{{ url_for('admin_books') }}" class="btn btn-secondary">
+                        <i class="fas fa-books"></i>
+                        Books Management
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                        <i class="fas fa-users"></i>
+                        User Management
+                    </a>
+                    <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                        <i class="fas fa-home"></i>
+                        Back to Store
+                    </a>
+                </div>
+            </div>
+            <div class="admin-subtitle">
+                <p>Comprehensive user analytics and website traffic monitoring</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analytics Content -->
+    <section class="admin-content">
+        <div class="container">
+            <!-- Overview Stats -->
+            <div class="analytics-overview">
+                <div class="overview-grid">
+                    <div class="stat-card primary">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>{{ analytics.total_users }}</h3>
+                            <p>Total Accounts</p>
+                            <span class="trend positive">+{{ analytics.new_users_today }} today</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card success">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>{{ analytics.active_users }}</h3>
+                            <p>Active Users</p>
+                            <span class="trend positive">{{ analytics.active_percentage }}% active</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>{{ analytics.secure_passwords }}</h3>
+                            <p>Secure Passwords</p>
+                            <span class="trend">{{ analytics.password_security_rate }}% secure</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card info">
+                        <div class="stat-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>{{ analytics.page_views_today }}</h3>
+                            <p>Page Views Today</p>
+                            <span class="trend positive">+{{ analytics.views_increase }}% vs yesterday</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Database Details -->
+            <div class="analytics-panel">
+                <div class="panel-header">
+                    <h2>
+                        <i class="fas fa-database"></i>
+                        User Database Analytics
+                    </h2>
+                    <div class="panel-actions">
+                        <button class="btn btn-primary" onclick="exportUserData()">
+                            <i class="fas fa-download"></i>
+                            Export Data
+                        </button>
+                        <button class="btn btn-secondary" onclick="refreshAnalytics()">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                    </div>
+                </div>
+
+                <div class="analytics-tabs">
+                    <div class="tab-nav">
+                        <button class="tab-btn active" onclick="showTab('accounts')">
+                            <i class="fas fa-user-friends"></i>
+                            Account Overview
+                        </button>
+                        <button class="tab-btn" onclick="showTab('security')">
+                            <i class="fas fa-lock"></i>
+                            Password Security
+                        </button>
+                        <button class="tab-btn" onclick="showTab('traffic')">
+                            <i class="fas fa-chart-bar"></i>
+                            Website Traffic
+                        </button>
+                        <button class="tab-btn" onclick="showTab('activity')">
+                            <i class="fas fa-clock"></i>
+                            User Activity
+                        </button>
+                    </div>
+
+                    <!-- Account Overview Tab -->
+                    <div class="tab-content active" id="accounts-tab">
+                        <div class="accounts-grid">
+                            <div class="account-metric">
+                                <div class="metric-header">
+                                    <h4>Registration Trends</h4>
+                                    <span class="metric-period">Last 30 days</span>
+                                </div>
+                                <div class="metric-chart">
+                                    <canvas id="registrationChart"></canvas>
+                                </div>
+                                <div class="metric-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">This Month:</span>
+                                        <span class="detail-value">{{ analytics.registrations_this_month }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Last Month:</span>
+                                        <span class="detail-value">{{ analytics.registrations_last_month }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="account-metric">
+                                <div class="metric-header">
+                                    <h4>User Types Distribution</h4>
+                                </div>
+                                <div class="metric-chart">
+                                    <canvas id="userTypesChart"></canvas>
+                                </div>
+                                <div class="metric-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label">Customers:</span>
+                                        <span class="detail-value">{{ analytics.customer_count }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label">Admins:</span>
+                                        <span class="detail-value">{{ analytics.admin_count }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Users Table -->
+                        <div class="recent-users-section">
+                            <h4><i class="fas fa-clock"></i> Recent User Registrations</h4>
+                            <div class="table-container">
+                                <table class="analytics-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Email</th>
+                                            <th>Registration Date</th>
+                                            <th>Status</th>
+                                            <th>First Purchase</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in analytics.recent_users %}
+                                        <tr>
+                                            <td>
+                                                <div class="user-info">
+                                                    <div class="user-avatar-small">
+                                                        <i class="fas fa-user"></i>
+                                                    </div>
+                                                    <span>{{ user.username }}</span>
+                                                </div>
+                                            </td>
+                                            <td>{{ user.email }}</td>
+                                            <td>{{ user.created_at.strftime('%m/%d/%Y %H:%M') if user.created_at else 'N/A' }}</td>
+                                            <td>
+                                                <span class="status-badge active">Active</span>
+                                            </td>
+                                            <td>
+                                                {% if user.first_purchase %}
+                                                    {{ user.first_purchase.strftime('%m/%d/%Y') }}
+                                                {% else %}
+                                                    <span class="no-purchase">No purchases</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Password Security Tab -->
+                    <div class="tab-content" id="security-tab">
+                        <div class="security-overview">
+                            <div class="security-stats">
+                                <div class="security-card strong">
+                                    <div class="security-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="security-content">
+                                        <h4>{{ analytics.strong_passwords }}</h4>
+                                        <p>Strong Passwords</p>
+                                        <span class="percentage">{{ "%.1f"|format(analytics.strong_password_percentage) }}%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="security-card medium">
+                                    <div class="security-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="security-content">
+                                        <h4>{{ analytics.medium_passwords }}</h4>
+                                        <p>Medium Passwords</p>
+                                        <span class="percentage">{{ "%.1f"|format(analytics.medium_password_percentage) }}%</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="security-card weak">
+                                    <div class="security-icon">
+                                        <i class="fas fa-times-circle"></i>
+                                    </div>
+                                    <div class="security-content">
+                                        <h4>{{ analytics.weak_passwords }}</h4>
+                                        <p>Weak Passwords</p>
+                                        <span class="percentage">{{ "%.1f"|format(analytics.weak_password_percentage) }}%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="password-recommendations">
+                                <h4><i class="fas fa-lightbulb"></i> Security Recommendations</h4>
+                                <div class="recommendations-list">
+                                    <div class="recommendation-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>{{ analytics.strong_passwords }} users have strong passwords</span>
+                                    </div>
+                                    <div class="recommendation-item warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <span>{{ analytics.weak_passwords }} users should update their passwords</span>
+                                    </div>
+                                    <div class="recommendation-item info">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>Enable 2FA for enhanced security</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Website Traffic Tab -->
+                    <div class="tab-content" id="traffic-tab">
+                        <div class="traffic-overview">
+                            <div class="traffic-metrics">
+                                <div class="traffic-card">
+                                    <h4>Today's Traffic</h4>
+                                    <div class="traffic-number">{{ analytics.unique_visitors_today }}</div>
+                                    <p>Unique Visitors</p>
+                                </div>
+                                
+                                <div class="traffic-card">
+                                    <h4>Page Views</h4>
+                                    <div class="traffic-number">{{ analytics.page_views_today }}</div>
+                                    <p>Total Views</p>
+                                </div>
+                                
+                                <div class="traffic-card">
+                                    <h4>Bounce Rate</h4>
+                                    <div class="traffic-number">{{ analytics.bounce_rate }}%</div>
+                                    <p>Bounce Rate</p>
+                                </div>
+                                
+                                <div class="traffic-card">
+                                    <h4>Avg. Session</h4>
+                                    <div class="traffic-number">{{ analytics.avg_session_duration }}</div>
+                                    <p>Duration</p>
+                                </div>
+                            </div>
+
+                            <div class="traffic-chart-container">
+                                <h4><i class="fas fa-chart-area"></i> Traffic Over Time</h4>
+                                <canvas id="trafficChart"></canvas>
+                            </div>
+
+                            <div class="popular-pages">
+                                <h4><i class="fas fa-fire"></i> Most Popular Pages</h4>
+                                <div class="pages-list">
+                                    {% for page in analytics.popular_pages %}
+                                    <div class="page-item">
+                                        <div class="page-info">
+                                            <span class="page-url">{{ page.url }}</span>
+                                            <span class="page-title">{{ page.title }}</span>
+                                        </div>
+                                        <div class="page-stats">
+                                            <span class="page-views">{{ page.views }} views</span>
+                                            <div class="page-bar">
+                                                <div class="page-progress" style="width: {{ page.percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Activity Tab -->
+                    <div class="tab-content" id="activity-tab">
+                        <div class="activity-overview">
+                            <div class="activity-stats">
+                                <div class="activity-card">
+                                    <h4>Online Now</h4>
+                                    <div class="activity-number">{{ analytics.users_online }}</div>
+                                    <p>Active Users</p>
+                                </div>
+                                
+                                <div class="activity-card">
+                                    <h4>Last 24h</h4>
+                                    <div class="activity-number">{{ analytics.users_last_24h }}</div>
+                                    <p>Active Users</p>
+                                </div>
+                                
+                                <div class="activity-card">
+                                    <h4>This Week</h4>
+                                    <div class="activity-number">{{ analytics.users_this_week }}</div>
+                                    <p>Active Users</p>
+                                </div>
+                                
+                                <div class="activity-card">
+                                    <h4>This Month</h4>
+                                    <div class="activity-number">{{ analytics.users_this_month }}</div>
+                                    <p>Active Users</p>
+                                </div>
+                            </div>
+
+                            <div class="activity-timeline">
+                                <h4><i class="fas fa-history"></i> Recent User Activity</h4>
+                                <div class="timeline">
+                                    {% for activity in analytics.recent_activities %}
+                                    <div class="timeline-item">
+                                        <div class="timeline-time">{{ activity.timestamp.strftime('%H:%M') }}</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-user">{{ activity.username }}</div>
+                                            <div class="timeline-action">{{ activity.action }}</div>
+                                        </div>
+                                        <div class="timeline-icon">
+                                            <i class="fas fa-{{ activity.icon }}"></i>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+/* Analytics Styles */
+.analytics-overview {
+    margin-bottom: 2rem;
+}
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--accent-gradient);
+}
+
+.stat-card.primary::before { background: linear-gradient(135deg, #007bff, #0056b3); }
+.stat-card.success::before { background: linear-gradient(135deg, #28a745, #1e7e34); }
+.stat-card.warning::before { background: linear-gradient(135deg, #ffc107, #e0a800); }
+.stat-card.info::before { background: linear-gradient(135deg, #17a2b8, #138496); }
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+}
+
+.stat-content h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-content p {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.trend {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.trend.positive {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+/* Analytics Panel */
+.analytics-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.panel-header {
+    padding: 2rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Tabs */
+.analytics-tabs {
+    position: relative;
+}
+
+.tab-nav {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-secondary);
+}
+
+.tab-btn {
+    padding: 1rem 2rem;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(0, 122, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--accent-color);
+    border-bottom-color: var(--accent-color);
+    background: var(--surface);
+}
+
+.tab-content {
+    display: none;
+    padding: 2rem;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Account Metrics */
+.accounts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.account-metric {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.metric-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.metric-period {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.metric-chart {
+    height: 200px;
+    margin-bottom: 1rem;
+}
+
+.metric-details {
+    display: flex;
+    gap: 2rem;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.detail-label {
+    color: var(--text-secondary);
+}
+
+.detail-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Security Cards */
+.security-overview {
+    display: grid;
+    gap: 2rem;
+}
+
+.security-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.security-card {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.security-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.security-card.strong::before { background: #28a745; }
+.security-card.medium::before { background: #ffc107; }
+.security-card.weak::before { background: #dc3545; }
+
+.security-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin: 0 auto 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.security-card.strong .security-icon { background: #28a745; }
+.security-card.medium .security-icon { background: #ffc107; }
+.security-card.weak .security-icon { background: #dc3545; }
+
+.password-recommendations {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.recommendation-item.warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.recommendation-item.info {
+    background: rgba(23, 162, 184, 0.1);
+    color: #17a2b8;
+}
+
+/* Traffic Overview */
+.traffic-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.traffic-card {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.traffic-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: 0.5rem 0;
+}
+
+.traffic-chart-container {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+/* Popular Pages */
+.popular-pages {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.pages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.page-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.page-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.page-url {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.page-title {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.page-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.page-bar {
+    width: 100px;
+    height: 6px;
+    background: var(--border-color);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.page-progress {
+    height: 100%;
+    background: var(--accent-gradient);
+    transition: width 0.3s ease;
+}
+
+/* Activity Overview */
+.activity-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.activity-card {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.activity-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin: 0.5rem 0;
+}
+
+/* Timeline */
+.activity-timeline {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+.timeline-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    min-width: 60px;
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-user {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.timeline-action {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+/* Recent Users Table */
+.recent-users-section {
+    margin-top: 2rem;
+}
+
+.table-container {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.analytics-table th,
+.analytics-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.analytics-table th {
+    background: var(--surface);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.user-avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.85rem;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-badge.active {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.no-purchase {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .overview-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .accounts-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tab-nav {
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .panel-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .panel-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Tab functionality
+function showTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab content
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+
+// Export user data
+function exportUserData() {
+    // In a real application, this would trigger a download
+    alert('Exporting user data...\n\nThis would download a CSV file with all user analytics data.');
+}
+
+// Refresh analytics
+function refreshAnalytics() {
+    // In a real application, this would refresh the data
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+    btn.disabled = true;
+    
+    setTimeout(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        location.reload();
+    }, 2000);
+}
+
+// Initialize charts when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+});
+
+function initializeCharts() {
+    // Registration Chart
+    const regCtx = document.getElementById('registrationChart');
+    if (regCtx) {
+        new Chart(regCtx, {
+            type: 'line',
+            data: {
+                labels: {{ analytics.registration_labels | tojson }},
+                datasets: [{
+                    label: 'New Registrations',
+                    data: {{ analytics.registration_data | tojson }},
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    // User Types Chart
+    const typesCtx = document.getElementById('userTypesChart');
+    if (typesCtx) {
+        new Chart(typesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Customers', 'Admins'],
+                datasets: [{
+                    data: [{{ analytics.customer_count }}, {{ analytics.admin_count }}],
+                    backgroundColor: ['#28a745', '#ffc107']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Traffic Chart
+    const trafficCtx = document.getElementById('trafficChart');
+    if (trafficCtx) {
+        new Chart(trafficCtx, {
+            type: 'area',
+            data: {
+                labels: {{ analytics.traffic_labels | tojson }},
+                datasets: [{
+                    label: 'Page Views',
+                    data: {{ analytics.traffic_data | tojson }},
+                    borderColor: '#17a2b8',
+                    backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

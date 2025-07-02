@@ -1,0 +1,88 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-logo">
+      <a href="{{ url_for('home') }}">
+        <i class="fas fa-book-open"></i>
+        <span>PageForge</span>
+      </a>
+    </div>
+    
+    <div class="nav-links">
+      <a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      {% if session.user_id %}
+        <a href="{{ url_for('my_library') }}" class="nav-link {% if request.endpoint == 'my_library' %}active{% endif %}">
+          <i class="fas fa-bookmark"></i>
+          <span>My Library</span>
+        </a>
+        {% if session.role == 'Admin' %}
+          <a href="{{ url_for('admin_books') }}" class="nav-link {% if 'admin' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-cogs"></i>
+            <span>Admin</span>
+          </a>
+        {% endif %}
+      {% endif %}
+    </div>
+    
+    <div class="nav-actions">
+      <button class="search-btn" onclick="toggleSearch()">
+        <i class="fas fa-search"></i>
+      </button>
+      {% if session.user_id %}
+        <a href="{{ url_for('cart') }}" class="cart-btn">
+          <i class="fas fa-shopping-cart"></i>
+          <span class="cart-count" id="cartCount">{{ session.get('cart', {})|length }}</span>
+        </a>
+        <div class="user-menu">
+          <button class="user-btn" onclick="toggleUserMenu()">
+            <i class="fas fa-user"></i>
+            <span>{{ session.username }}</span>
+          </button>
+          <div class="user-dropdown" id="userDropdown">
+            <a href="{{ url_for('my_library') }}">
+              <i class="fas fa-book"></i>
+              My Library
+            </a>
+            {% if session.role == 'Admin' %}
+              <a href="{{ url_for('admin_books') }}">
+                <i class="fas fa-cogs"></i>
+                Admin Dashboard
+              </a>
+            {% endif %}
+            <div class="dropdown-divider"></div>
+            <a href="{{ url_for('logout') }}">
+              <i class="fas fa-sign-out-alt"></i>
+              Logout
+            </a>
+          </div>
+        </div>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-header-login">
+          <i class="fas fa-sign-in-alt"></i>
+          <span>Login</span>
+        </a>
+        <a href="{{ url_for('register') }}" class="btn-header-signup">
+          <i class="fas fa-user-plus"></i>
+          <span>Sign Up</span>
+        </a>
+      {% endif %}
+      <button class="menu-toggle" onclick="toggleMobileMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-overlay" id="searchOverlay">
+    <div class="search-container">
+      <input type="text" placeholder="Search books, authors, categories..." class="search-input" id="searchInput">
+      <button class="search-close" onclick="toggleSearch()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+</nav>

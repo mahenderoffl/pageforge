@@ -1,0 +1,170 @@
+<footer class="footer">
+  <div class="footer-container">
+    <!-- Main Footer Content -->
+    <div class="footer-main">
+      <!-- Brand Section -->
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <i class="fas fa-book-open"></i>
+          <span>PageForge</span>
+        </div>
+        <p class="footer-description">
+          Your premium digital library experience. Discover, read, and collect thousands of books from world-renowned authors.
+        </p>
+        <div class="developer-credit">
+          <p><strong>Developed by Mahender Banoth (IIT Patna)</strong></p>
+        </div>
+        <div class="footer-social">
+          <a href="https://www.instagram.com/mahender_hustles/" target="_blank" aria-label="Instagram @mahender_hustles">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.linkedin.com/in/mahendercreates/" target="_blank" aria-label="LinkedIn - Mahender Creates">
+            <i class="fab fa-linkedin-in"></i>
+          </a>
+          <a href="https://github.com/mahenderoffl" target="_blank" aria-label="GitHub - Mahender Offl">
+            <i class="fab fa-github"></i>
+          </a>
+          <a href="https://twitter.com/mahender_hustles" target="_blank" aria-label="Twitter @mahender_hustles">
+            <i class="fab fa-twitter"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="footer-links">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="{{ url_for('browse_books') }}">Browse Books</a></li>
+          <li><a href="{{ url_for('bestsellers') }}">Bestsellers</a></li>
+          <li><a href="{{ url_for('new_arrivals') }}">New Arrivals</a></li>
+          <li><a href="{{ url_for('free_books') }}">Free Books</a></li>
+          <li><a href="{{ url_for('my_library') if 'user_id' in session else url_for('login') }}">My Library</a></li>
+          <li><a href="{{ url_for('cart') if 'user_id' in session else url_for('login') }}">Shopping Cart</a></li>
+        </ul>
+      </div>
+
+      <!-- Categories -->
+      <div class="footer-links">
+        <h4>Categories</h4>
+        <ul>
+          <li><a href="{{ url_for('browse_books', category='Fiction') }}">Fiction</a></li>
+          <li><a href="{{ url_for('browse_books', category='Non-Fiction') }}">Non-Fiction</a></li>
+          <li><a href="{{ url_for('browse_books', category='Science Fiction') }}">Science Fiction</a></li>
+          <li><a href="{{ url_for('browse_books', category='Romance') }}">Romance</a></li>
+          <li><a href="{{ url_for('browse_books', category='Mystery') }}">Mystery & Thriller</a></li>
+          <li><a href="{{ url_for('browse_books', category='Biography') }}">Biography</a></li>
+        </ul>
+      </div>
+
+      <!-- Support -->
+      <div class="footer-links">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#" onclick="showSupportModal('help'); return false;">Help Center</a></li>
+          <li><a href="#" onclick="showSupportModal('contact'); return false;">Contact Us</a></li>
+          <li><a href="#" onclick="showSupportModal('apps'); return false;">Reading Apps</a></li>
+          <li><a href="#" onclick="showSupportModal('devices'); return false;">Device Support</a></li>
+          <li><a href="#" onclick="showSupportModal('account'); return false;">Account Settings</a></li>
+          <li><a href="#" onclick="showSupportModal('gifts'); return false;">Gift Cards</a></li>
+        </ul>
+      </div>
+
+      <!-- About -->
+      <div class="footer-links">
+        <h4>About</h4>
+        <ul>
+          <li><a href="#" onclick="showAboutModal('pageforge'); return false;">About PageForge</a></li>
+          <li><a href="#" onclick="showAboutModal('mission'); return false;">Our Mission</a></li>
+          <li><a href="#" onclick="showAboutModal('developer'); return false;">Developer</a></li>
+          <li><a href="https://www.instagram.com/mahender_hustles/" target="_blank">sofware </a></li>
+          <li><a href="#" onclick="showAboutModal('careers'); return false;">Careers</a></li>
+          <li><a href="#" onclick="showAboutModal('press'); return false;">Press</a></li>
+        </ul>
+      </div>
+
+      <!-- Legal -->
+      <div class="footer-links">
+        <h4>Legal & Policies</h4>
+        <ul>
+          <li><a href="#" onclick="showPolicy('privacy'); return false;">Privacy Policy</a></li>
+          <li><a href="#" onclick="showPolicy('terms'); return false;">Terms of Service</a></li>
+          <li><a href="#" onclick="showPolicy('cookies'); return false;">Cookie Policy</a></li>
+          <li><a href="#" onclick="showPolicy('support'); return false;">Accessibility</a></li>
+          <li><a href="#" onclick="showPolicy('dmca'); return false;">DMCA Policy</a></li>
+          <li><a href="#">Licensing</a></li>
+        </ul>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="footer-newsletter">
+        <h4>Stay Updated</h4>
+        <p>Get the latest book recommendations and exclusive offers.</p>
+        <form class="newsletter-form">
+          <div class="newsletter-input">
+            <input type="email" placeholder="Enter your email" required>
+            <button type="submit">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </form>
+        <div class="footer-stats">
+          <div class="stat-item">
+            <span class="stat-number">2M+</span>
+            <span class="stat-label">Happy Readers</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">50K+</span>
+            <span class="stat-label">Books Available</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-content">
+        <div class="footer-legal">
+          <span>&copy; 2025 PageForge. All rights reserved.</span>
+          <!-- Make sure Font Awesome is included in your <head> -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Font Awesome in <head> if not already included -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<p style="margin: 0; font-size: 1rem;">
+  Developed by <strong>Mahender Banoth</strong> 
+  <span style="color: #888; white-space: nowrap;">
+    (IIT Patna 
+    <a href="https://www.instagram.com/mahender_hustles/" target="_blank" style="color: #E1306C; margin-left: 5px;">
+      <i class="fab fa-instagram"></i> )
+    </a>
+  </span>
+</p>
+
+
+
+          <div class="footer-legal-links">
+            <a href="#" onclick="showPolicy('privacy'); return false;">Privacy Policy</a>
+            <a href="#" onclick="showPolicy('terms'); return false;">Terms of Service</a>
+            <a href="#" onclick="showPolicy('cookies'); return false;">Cookie Policy</a>
+            <a href="#" onclick="showPolicy('support'); return false;">Accessibility</a>
+          </div>
+        </div>
+        <div class="footer-badges">
+          <div class="badge-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>Secure</span>
+          </div>
+          <div class="badge-item">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Mobile Friendly</span>
+          </div>
+          <div class="badge-item">
+            <i class="fas fa-cloud"></i>
+            <span>Cloud Sync</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

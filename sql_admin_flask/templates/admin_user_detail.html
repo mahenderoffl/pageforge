@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }} - User Details{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- User Header -->
+    <section class="admin-header">
+        <div class="container">
+            <div class="admin-nav">
+                <h1 class="admin-title">
+                    <i class="fas fa-user-circle"></i>
+                    {{ user.username }}
+                    <small class="developer-tag">User Profile</small>
+                </h1>
+                <div class="admin-actions">
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Users
+                    </a>
+                    <a href="{{ url_for('admin_books') }}" class="btn btn-secondary">
+                        <i class="fas fa-books"></i>
+                        Books Management
+                    </a>
+                </div>
+            </div>
+            <div class="admin-subtitle">
+                <p>Detailed information and order history for {{ user.username }}</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Details -->
+    <section class="admin-content">
+        <div class="container">
+            <div class="user-profile-grid">
+                <!-- User Information Card -->
+                <div class="user-info-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-user"></i>
+                            User Information
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="user-avatar-large">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="user-details">
+                            <h2>{{ user.username }}</h2>
+                            <p class="user-email">
+                                <i class="fas fa-envelope"></i>
+                                {{ user.email }}
+                            </p>
+                            <div class="user-badges">
+                                <span class="role-badge {% if user.role == 'Admin' %}role-admin{% else %}role-customer{% endif %}">
+                                    {% if user.role == 'Admin' %}
+                                        <i class="fas fa-crown"></i>
+                                    {% else %}
+                                        <i class="fas fa-user"></i>
+                                    {% endif %}
+                                    {{ user.role }}
+                                </span>
+                            </div>
+                            <div class="user-meta">
+                                <div class="meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Joined: {{ user.created_at.strftime('%B %d, %Y') if user.created_at else 'Unknown' }}</span>
+                                </div>
+                                <div class="meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Last Updated: {{ user.updated_at.strftime('%B %d, %Y') if user.updated_at else 'Unknown' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics Card -->
+                <div class="user-stats-card">
+                    <div class="card-header">
+                        <h3>
+                            <i class="fas fa-chart-line"></i>
+                            Statistics
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-value">{{ orders|map(attribute='order_id')|list|unique|length }}</div>
+                                <div class="stat-label">Total Orders</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">₹{{ "%.2f"|format(orders|sum(attribute='price') * orders|sum(attribute='quantity')) if orders else '0.00' }}</div>
+                                <div class="stat-label">Total Spent</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ orders|sum(attribute='quantity') if orders else 0 }}</div>
+                                <div class="stat-label">Books Purchased</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">{{ (orders|sum(attribute='price') * orders|sum(attribute='quantity') / orders|map(attribute='order_id')|list|unique|length)|round(2) if orders and orders|map(attribute='order_id')|list|unique|length > 0 else 0 }}</div>
+                                <div class="stat-label">Avg Order Value</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order History -->
+            <div class="order-history-section">
+                <div class="section-header">
+                    <h3>
+                        <i class="fas fa-shopping-bag"></i>
+                        Order History
+                    </h3>
+                    <div class="section-actions">
+                        <span class="order-count">{{ orders|map(attribute='order_id')|list|unique|length }} Orders</span>
+                    </div>
+                </div>
+
+                {% if orders %}
+                {% set processed_orders = {} %}
+                {% for order in orders %}
+                    {% if order.order_id not in processed_orders %}
+                        {% set _ = processed_orders.update({order.order_id: []}) %}
+                    {% endif %}
+                    {% set _ = processed_orders[order.order_id].append(order) %}
+                {% endfor %}
+
+                <div class="orders-container">
+                    {% for order_id, order_items in processed_orders.items() %}
+                    {% set first_item = order_items[0] %}
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div class="order-info">
+                                <h4>Order #{{ order_id }}</h4>
+                                <p class="order-date">
+                                    <i class="fas fa-calendar"></i>
+                                    {{ first_item.order_date.strftime('%B %d, %Y at %I:%M %p') if first_item.order_date else 'Unknown Date' }}
+                                </p>
+                            </div>
+                            <div class="order-summary">
+                                <div class="order-total">
+                                    ₹{{ "%.2f"|format(order_items|sum(attribute='price') * order_items|sum(attribute='quantity')) }}
+                                </div>
+                                <div class="order-items-count">{{ order_items|length }} items</div>
+                            </div>
+                        </div>
+                        
+                        <div class="order-items">
+                            {% for item in order_items %}
+                            <div class="order-item">
+                                <div class="item-image">
+                                    <img src="{{ item.image_url or 'https://via.placeholder.com/80x120/1a1a1a/ffffff?text=No+Cover' }}" 
+                                         alt="{{ item.title }}" 
+                                         onerror="this.src='https://via.placeholder.com/80x120/1a1a1a/ffffff?text=No+Cover'">
+                                </div>
+                                <div class="item-details">
+                                    <h5>{{ item.title }}</h5>
+                                    <p class="item-author">by {{ item.author }}</p>
+                                    <div class="item-meta">
+                                        <span class="item-quantity">Qty: {{ item.quantity }}</span>
+                                        <span class="item-price">₹{{ "%.2f"|format(item.price) }} each</span>
+                                    </div>
+                                </div>
+                                <div class="item-total">
+                                    ₹{{ "%.2f"|format(item.price * item.quantity) }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="empty-orders">
+                    <div class="empty-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h3>No Orders Yet</h3>
+                    <p>{{ user.username }} hasn't made any purchases yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+/* User Detail Styles */
+.user-profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.user-info-card, .user-stats-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-secondary);
+}
+
+.card-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.user-avatar-large {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.user-avatar-large i {
+    font-size: 5rem;
+    color: var(--accent-color);
+}
+
+.user-details {
+    text-align: center;
+}
+
+.user-details h2 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+    font-size: 1.8rem;
+}
+
+.user-email {
+    color: var(--text-secondary);
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.user-badges {
+    margin-bottom: 1.5rem;
+}
+
+.role-badge {
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.role-admin {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.role-customer {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.user-meta {
+    text-align: left;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.meta-item i {
+    color: var(--accent-color);
+    width: 16px;
+}
+
+/* Statistics */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--background-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Order History */
+.order-history-section {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.section-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--background-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.order-count {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.orders-container {
+    padding: 1.5rem;
+}
+
+.order-card {
+    background: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+}
+
+.order-card:last-child {
+    margin-bottom: 0;
+}
+
+.order-header {
+    padding: 1rem 1.5rem;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-info h4 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.order-date {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.order-summary {
+    text-align: right;
+}
+
+.order-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 0.25rem;
+}
+
+.order-items-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.order-items {
+    padding: 1rem;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    margin-bottom: 0.75rem;
+    background: var(--surface);
+}
+
+.order-item:last-child {
+    margin-bottom: 0;
+}
+
+.item-image {
+    width: 60px;
+    height: 80px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.item-details {
+    flex: 1;
+}
+
+.item-details h5 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.item-author {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.item-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.item-total {
+    font-weight: 600;
+    color: var(--accent-color);
+    font-size: 1rem;
+}
+
+/* Empty State */
+.empty-orders {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: var(--border-color);
+}
+
+.empty-orders h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .user-profile-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .order-summary {
+        text-align: left;
+    }
+    
+    .order-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .item-meta {
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
