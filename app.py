@@ -16,19 +16,22 @@ Development Setup:
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-import mysql.connector
+import psycopg2
+import psycopg2.extras
 import os
 from dotenv import load_dotenv
 from functools import wraps
 
 load_dotenv()
 
+import psycopg2
+import psycopg2.extras
+import os
+
 def get_connection():
-    return mysql.connector.connect(
-        host=os.getenv("DB_HOST", "localhost"),
-        user=os.getenv("DB_USER", "root"),
-        password=os.getenv("DB_PASSWORD", ""),
-        database=os.getenv("DB_NAME", "template_db")
+    return psycopg2.connect(
+        "postgres://postgres@y4ggc1whzgb37xwm.browser.db.build/postgres?sslmode=require",
+        cursor_factory=psycopg2.extras.RealDictCursor
     )
 
 app = Flask(__name__)
