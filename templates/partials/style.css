@@ -1,0 +1,44 @@
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom, #0b1120, #121826);
+  color: #fff;
+}
+
+.hero {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  color: gold;
+}
+
+.search-bar input {
+  padding: 1em;
+  border-radius: 25px;
+  border: none;
+  outline: none;
+  width: 60%;
+  font-size: 1rem;
+}
+
+.category-card {
+  padding: 2rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.37);
+  backdrop-filter: blur(8.5px);
+  transition: transform 0.3s ease;
+}
+
+.category-card:hover {
+  transform: scale(1.05);
+  cursor: pointer;
+}

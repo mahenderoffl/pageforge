@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Books Management{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- Admin Header -->
+    <section class="admin-header">
+        <div class="container">
+            <div class="admin-nav">
+                <h1 class="admin-title">
+                    <i class="fas fa-cogs"></i>
+                    Admin Dashboard
+                    <small class="developer-tag">🎉</small>
+                </h1>
+                <div class="admin-actions">
+                    <a href="{{ url_for('add_book') }}" class="btn-add-book">
+                        <i class="fas fa-plus-circle"></i>
+                        <span class="btn-text">
+                            <strong>Add New Book</strong>
+                            <small>Expand your collection</small>
+                        </span>
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="btn-add-book btn-analytics">
+                        <i class="fas fa-chart-line"></i>
+                        <span class="btn-text">
+                            <strong>Analytics</strong>
+                            <small>User & Traffic insights</small>
+                        </span>
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="btn-add-book btn-users">
+                        <i class="fas fa-users"></i>
+                        <span class="btn-text">
+                            <strong>User Management</strong>
+                            <small>Manage customers</small>
+                        </span>
+                    </a>
+                    <a href="{{ url_for('home') }}" class="btn-add-book btn-store">
+                        <i class="fas fa-home"></i>
+                        <span class="btn-text">
+                            <strong>Back to Store</strong>
+                            <small>View storefront</small>
+                        </span>
+                    </a>
+                </div>
+            </div>
+            <div class="admin-subtitle">
+                <p>Manage your digital bookstore inventory with ease</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Books Management -->
+    <section class="admin-content">
+        <div class="container">
+            <div class="admin-panel">
+                <div class="panel-header">
+                    <h2>
+                        <i class="fas fa-books"></i>
+                        Books Management
+                    </h2>
+                    <div class="panel-stats">
+                        <span class="stat">{{ books|length }} Total Books</span>
+                        <span class="stat">{{ books|selectattr('stock', '>', 0)|list|length }} In Stock</span>
+                    </div>
+                </div>
+
+                {% if books %}
+                <div class="books-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Book</th>
+                                <th>Author</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for book in books %}
+                            <tr class="book-row" data-book-id="{{ book.book_id }}">
+                                <td class="book-cell">
+                                    <div class="book-preview">
+                                        <img src="{{ book.image_url or '/static/images/default-book.jpg' }}" 
+                                             alt="{{ book.title }}" class="book-thumb">
+                                        <div class="book-details">
+                                            <h4>{{ book.title }}</h4>
+                                            <p class="book-desc">{{ book.description[:50] }}...</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ book.author }}</td>
+                                <td>
+                                    <span class="category-badge">{{ book.category }}</span>
+                                </td>
+                                <td class="price-cell">₹{{ "%.2f"|format(book.price) }}</td>
+                                <td class="stock-cell">
+                                    <span class="stock-badge {% if book.stock > 10 %}stock-good{% elif book.stock > 0 %}stock-low{% else %}stock-out{% endif %}">
+                                        {{ book.stock }}
+                                    </span>
+                                </td>
+                                <td>{{ book.created_at.strftime('%m/%d/%Y') if book.created_at else 'N/A' }}</td>
+                                <td class="actions-cell">
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('edit_book', book_id=book.book_id) }}" 
+                                           class="btn btn-sm btn-edit" title="Edit Book">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button class="btn btn-sm btn-delete delete-book-btn" 
+                                                title="Delete Book"
+                                                data-book-id="{{ book.book_id }}"
+                                                data-book-title="{{ book.title }}">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>No Books Found</h3>
+                    <p>Start by adding your first book to the store.</p>
+                    <a href="{{ url_for('add_book') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Add First Book
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<script>
+// Add event listeners for delete buttons
+document.addEventListener('DOMContentLoaded', function() {
+    const deleteButtons = document.querySelectorAll('.delete-book-btn');
+    
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const bookId = this.getAttribute('data-book-id');
+            const bookTitle = this.getAttribute('data-book-title');
+            
+            if (confirm(`Are you sure you want to delete "${bookTitle}"? This action cannot be undone.`)) {
+                // Show loading state
+                const originalHtml = this.innerHTML;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                this.disabled = true;
+                
+                // Redirect to delete endpoint
+                window.location.href = `/admin/books/delete/${bookId}`;
+            }
+        });
+    });
+    
+    const rows = document.querySelectorAll('.book-row');
+    
+    rows.forEach(row => {
+        row.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = 'rgba(74, 144, 226, 0.05)';
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = 'transparent';
+        });
+    });
+    
+    // Add search functionality
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = 'Search books...';
+    searchInput.className = 'search-input';
+    
+    const panelHeader = document.querySelector('.panel-header');
+    if (panelHeader) {
+        panelHeader.appendChild(searchInput);
+        
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.book-row');
+            
+            rows.forEach(row => {
+                const title = row.querySelector('.book-details h4').textContent.toLowerCase();
+                const author = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const category = row.querySelector('.category-badge').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || author.includes(searchTerm) || category.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

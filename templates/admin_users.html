@@ -1,0 +1,552 @@
+{% extends "base.html" %}
+
+{% block title %}User Management - Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <!-- Admin Header -->
+    <section class="admin-header">
+        <div class="container">
+            <div class="admin-nav">
+                <h1 class="admin-title">
+                    <i class="fas fa-users"></i>
+                    User Management
+                    <small class="developer-tag">Admin Dashboard</small>
+                </h1>
+                <div class="admin-actions">
+                    <a href="{{ url_for('admin_analytics') }}" class="btn btn-primary">
+                        <i class="fas fa-chart-line"></i>
+                        Analytics
+                    </a>
+                    <a href="{{ url_for('admin_books') }}" class="btn btn-secondary">
+                        <i class="fas fa-books"></i>
+                        Books Management
+                    </a>
+                    <a href="{{ url_for('home') }}" class="btn btn-secondary">
+                        <i class="fas fa-home"></i>
+                        Back to Store
+                    </a>
+                </div>
+            </div>
+            <div class="admin-subtitle">
+                <p>Manage customer accounts and view user statistics</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Users Management -->
+    <section class="admin-content">
+        <div class="container">
+            <div class="admin-panel">
+                <div class="panel-header">
+                    <h2>
+                        <i class="fas fa-user-friends"></i>
+                        Customer Database
+                    </h2>
+                    <div class="panel-stats">
+                        <span class="stat">{{ users|length }} Total Users</span>
+                        <span class="stat">{{ users|selectattr('role', 'equalto', 'Customer')|list|length }} Customers</span>
+                        <span class="stat">{{ users|selectattr('role', 'equalto', 'Admin')|list|length }} Admins</span>
+                    </div>
+                </div>
+
+                {% if users %}
+                <div class="users-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                                <th>Books Owned</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr class="user-row" data-user-id="{{ user.id }}">
+                                <td class="user-cell">
+                                    <div class="user-preview">
+                                        <div class="user-avatar">
+                                            <i class="fas fa-user-circle"></i>
+                                        </div>
+                                        <div class="user-details">
+                                            <h4>{{ user.username }}</h4>
+                                            <p class="user-status">
+                                                {% if user.role == 'Admin' %}
+                                                    <i class="fas fa-crown"></i> Administrator
+                                                {% else %}
+                                                    <i class="fas fa-user"></i> Customer
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    <span class="role-badge {% if user.role == 'Admin' %}role-admin{% else %}role-customer{% endif %}">
+                                        {{ user.role }}
+                                    </span>
+                                </td>
+                                <td class="orders-cell">
+                                    <span class="orders-count">{{ user.total_orders }}</span>
+                                </td>
+                                <td class="spent-cell">₹{{ "%.2f"|format(user.total_spent) }}</td>
+                                <td class="books-cell">{{ user.books_purchased }}</td>
+                                <td>{{ user.created_at.strftime('%m/%d/%Y') if user.created_at else 'N/A' }}</td>
+                                <td class="actions-cell">
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('admin_user_detail', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-view" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if user.role != 'Admin' %}
+                                        <button class="btn btn-sm btn-message" 
+                                                title="Send Message"
+                                                onclick="showMessageModal('{{ user.username }}', '{{ user.email }}')">
+                                            <i class="fas fa-envelope"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- User Statistics -->
+                <div class="user-stats-section">
+                    <h3>
+                        <i class="fas fa-chart-bar"></i>
+                        User Statistics
+                    </h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>{{ users|length }}</h4>
+                                <p>Total Users</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>{{ users|sum(attribute='total_orders') }}</h4>
+                                <p>Total Orders</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>₹{{ "%.0f"|format(users|sum(attribute='total_spent')) }}</h4>
+                                <p>Revenue Generated</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h4>{{ users|sum(attribute='books_purchased') }}</h4>
+                                <p>Books Sold</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>No Users Found</h3>
+                    <p>The user database is empty. Users will appear here once they register.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+/* Users Management Styles */
+.users-table-container {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+.user-row {
+    transition: all 0.3s ease;
+}
+
+.user-row:hover {
+    background-color: rgba(0, 122, 255, 0.05);
+}
+
+.user-cell {
+    padding: 1rem;
+}
+
+.user-preview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.user-details h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.user-status {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.role-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.role-admin {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.role-customer {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.orders-cell, .spent-cell, .books-cell {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.orders-count {
+    background: rgba(0, 122, 255, 0.1);
+    color: var(--accent-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.btn-view {
+    background: rgba(0, 122, 255, 0.1);
+    color: var(--accent-color);
+    border: 1px solid rgba(0, 122, 255, 0.3);
+}
+
+.btn-view:hover {
+    background: var(--accent-color);
+    color: white;
+}
+
+.btn-message {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+    border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.btn-message:hover {
+    background: #28a745;
+    color: white;
+}
+
+/* User Statistics */
+.user-stats-section {
+    margin-top: 2rem;
+    padding: 2rem;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+}
+
+.user-stats-section h3 {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: var(--background-secondary);
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-color);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content h4 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-content p {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-muted);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    color: var(--border-color);
+}
+
+.empty-state h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-nav {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .admin-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .users-table-container {
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        min-width: 800px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+}
+</style>
+
+<script>
+function showMessageModal(username, email) {
+    const modal = document.createElement('div');
+    modal.className = 'policy-modal';
+    modal.innerHTML = `
+        <div class="policy-modal-content">
+            <div class="policy-modal-header">
+                <h2><i class="fas fa-envelope"></i> Send Message to ${username}</h2>
+                <button class="policy-close" onclick="closeMessageModal()">&times;</button>
+            </div>
+            <div class="policy-modal-body">
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label for="messageSubject">Subject:</label>
+                        <input type="text" id="messageSubject" class="form-control" placeholder="Enter message subject" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="messageBody">Message:</label>
+                        <textarea id="messageBody" class="form-control" rows="6" placeholder="Enter your message..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="policy-modal-footer">
+                <button class="btn-close" onclick="closeMessageModal()">Cancel</button>
+                <button class="btn-primary" onclick="sendMessage('${email}')">
+                    <i class="fas fa-paper-plane"></i> Send Message
+                </button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add form styles
+    const formStyles = `
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            background: var(--background-secondary);
+            color: var(--text-primary);
+            font-family: inherit;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.1);
+        }
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-left: 1rem;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+    `;
+    
+    if (!document.getElementById('message-form-styles')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'message-form-styles';
+        styleSheet.textContent = formStyles;
+        document.head.appendChild(styleSheet);
+    }
+    
+    // Animate in
+    modal.style.opacity = '0';
+    setTimeout(() => {
+        modal.style.transition = 'opacity 0.3s ease';
+        modal.style.opacity = '1';
+    }, 10);
+}
+
+function closeMessageModal() {
+    const modal = document.querySelector('.policy-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    }
+}
+
+function sendMessage(email) {
+    const subject = document.getElementById('messageSubject').value;
+    const body = document.getElementById('messageBody').value;
+    
+    if (!subject || !body) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    // Simulate sending message
+    alert(`Message sent to ${email}!\n\nSubject: ${subject}\n\nNote: This is a demo. In a real application, this would integrate with an email service.`);
+    closeMessageModal();
+}
+
+// Add search functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Add search box to the page
+    const panelHeader = document.querySelector('.panel-header');
+    if (panelHeader) {
+        const searchContainer = document.createElement('div');
+        searchContainer.innerHTML = `
+            <div class="search-box" style="margin-top: 1rem;">
+                <input type="text" id="userSearch" placeholder="Search users by name or email..." 
+                       style="width: 100%; max-width: 300px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--background-secondary);">
+            </div>
+        `;
+        panelHeader.appendChild(searchContainer);
+        
+        // Add search functionality
+        const searchInput = document.getElementById('userSearch');
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const userRows = document.querySelectorAll('.user-row');
+            
+            userRows.forEach(row => {
+                const username = row.querySelector('.user-details h4').textContent.toLowerCase();
+                const email = row.children[1].textContent.toLowerCase();
+                
+                if (username.includes(searchTerm) || email.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1132 @@
+{% extends "base.html" %}
+
+{% block title %}My Library - PageForge{% endblock %}
+
+{% block content %}
+<div class="library-container">
+  <div class="library-header">
+    <div class="header-content">
+      <h1 class="library-title">
+        <i class="fas fa-book-reader"></i>
+        My Digital Library
+      </h1>
+      <p class="library-subtitle">Your personal collection of digital books</p>
+      
+      {% if books %}
+      <div class="library-stats">
+        <div class="stat-item">
+          <i class="fas fa-books"></i>
+          <div class="stat-content">
+            <span class="stat-number">{{ books|length }}</span>
+            <span class="stat-label">Books Owned</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-calendar"></i>
+          <div class="stat-content">
+            <span class="stat-number">{{ books|map(attribute='order_date')|list|unique|length }}</span>
+            <span class="stat-label">Orders</span>
+          </div>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-clock"></i>
+          <div class="stat-content">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">Access</span>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="library-content">
+    {% if books %}
+    <div class="books-grid">
+      {% for book in books %}
+      <div class="library-book-card" data-book-id="{{ book.book_id }}">
+        <div class="book-cover">
+          <img src="{{ book.image_url or 'https://via.placeholder.com/200x300/1a1a1a/ffffff?text=No+Cover' }}" 
+               alt="{{ book.title }}" 
+               onerror="this.src='https://via.placeholder.com/200x300/1a1a1a/ffffff?text=No+Cover'">
+          <div class="book-overlay">
+            <button class="read-btn" onclick="readBook('{{ book.title }}')">
+              <i class="fas fa-book-open"></i>
+              Read Now
+            </button>
+            <button class="download-btn" onclick="downloadBook('{{ book.title }}')">
+              <i class="fas fa-download"></i>
+              Download
+            </button>
+          </div>
+          {% if book.quantity > 1 %}
+          <div class="quantity-badge">{{ book.quantity }}x</div>
+          {% endif %}
+        </div>
+        <div class="book-info">
+          <h3 class="book-title">{{ book.title }}</h3>
+          <p class="book-author">by {{ book.author }}</p>
+          <div class="book-meta">
+            <span class="purchase-date">
+              <i class="fas fa-calendar-alt"></i>
+              {{ book.order_date.strftime('%b %d, %Y') }}
+            </span>
+            <span class="order-status status-{{ book.status.lower() }}">
+              <i class="fas fa-check-circle"></i>
+              {{ book.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Reading Progress Section -->
+    <div class="reading-section">
+      <h3 class="section-title">
+        <i class="fas fa-chart-line"></i>
+        Your Reading Journey
+      </h3>
+      <div class="reading-stats">
+        <div class="reading-item">
+          <i class="fas fa-star"></i>
+          <span>Start your reading adventure today!</span>
+        </div>
+        <div class="reading-item">
+          <i class="fas fa-bookmark"></i>
+          <span>Bookmarks and notes sync across devices</span>
+        </div>
+        <div class="reading-item">
+          <i class="fas fa-moon"></i>
+          <span>Dark mode available for comfortable reading</span>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="empty-library">
+      <div class="empty-content">
+        <div class="empty-icon">
+          <i class="fas fa-book-open"></i>
+        </div>
+        <h2>Your Library Awaits</h2>
+        <p>Start building your digital collection with amazing books from our store</p>
+        <div class="empty-benefits">
+          <div class="benefit-item">
+            <i class="fas fa-cloud"></i>
+            <span>Cloud storage</span>
+          </div>
+          <div class="benefit-item">
+            <i class="fas fa-mobile-alt"></i>
+            <span>Read anywhere</span>
+          </div>
+          <div class="benefit-item">
+            <i class="fas fa-infinity"></i>
+            <span>Unlimited access</span>
+          </div>
+        </div>
+        <a href="{{ url_for('home') }}" class="browse-btn">
+          <i class="fas fa-search"></i>
+          Browse Books
+        </a>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Policy Links -->
+    <div class="policy-section">
+      <div class="policy-links">
+        <a href="#" class="policy-link" onclick="showPolicy('privacy')">
+          <i class="fas fa-shield-alt"></i>
+          Privacy Policy
+        </a>
+        <a href="#" class="policy-link" onclick="showPolicy('terms')">
+          <i class="fas fa-file-contract"></i>
+          Terms of Service
+        </a>
+        <a href="#" class="policy-link" onclick="showPolicy('refund')">
+          <i class="fas fa-undo"></i>
+          Refund Policy
+        </a>
+        <a href="#" class="policy-link" onclick="showPolicy('cookies')">
+          <i class="fas fa-cookie-bite"></i>
+          Cookie Policy
+        </a>
+        <a href="#" class="policy-link" onclick="showPolicy('dmca')">
+          <i class="fas fa-copyright"></i>
+          DMCA Policy
+        </a>
+        <a href="#" class="policy-link" onclick="showPolicy('support')">
+          <i class="fas fa-headset"></i>
+          Support Center
+        </a>
+      </div>
+      <div class="policy-disclaimer">
+        <p><i class="fas fa-info-circle"></i> By using PageForge, you agree to our terms and policies. We are committed to protecting your privacy and providing excellent service.</p>
+      </div>
+    </div>
+
+    <!-- Developer Credits -->
+    <div class="developer-credits">
+      <p>Developed by <strong>Mahender Banoth (IIT Patna)</strong></p>
+      <p class="developer-bio">"Student at IIT Patna, driven by curiosity and a vision to shape the tech-driven future through innovative solutions."</p>
+      <div class="developer-social">
+        <a href="https://www.instagram.com/mahender_hustles/" target="_blank" title="@mahender_hustles">
+          <i class="fab fa-instagram"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/mahender-hustles/" target="_blank" title="Mahender Hustles">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+        <a href="https://github.com/mahenderoffl" target="_blank" title="GitHub">
+          <i class="fab fa-github"></i>
+        </a>
+      </div>
+    </div>
+
+<style>
+/* Library Styles */
+.library-container {
+  min-height: 100vh;
+  background: var(--background-primary);
+  padding-top: 5rem;
+}
+
+.library-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-color);
+  padding: 3rem 0;
+  text-align: center;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.library-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.library-title i {
+  color: var(--accent-color);
+}
+
+.library-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+}
+
+.library-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(0, 122, 255, 0.1);
+  padding: 1rem 2rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.stat-item i {
+  font-size: 1.5rem;
+  color: var(--accent-color);
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.library-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem;
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+
+.library-book-card {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.library-book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-color);
+}
+
+.book-cover {
+  position: relative;
+  height: 300px;
+  overflow: hidden;
+}
+
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.library-book-card:hover .book-cover img {
+  transform: scale(1.05);
+}
+
+.book-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.library-book-card:hover .book-overlay {
+  opacity: 1;
+}
+
+.read-btn,
+.download-btn {
+  background: var(--accent-gradient);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.download-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.read-btn:hover,
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 122, 255, 0.3);
+}
+
+.quantity-badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: var(--accent-color);
+  color: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.book-info {
+  padding: 1.5rem;
+}
+
+.book-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.book-author {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.book-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.purchase-date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.order-status {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 500;
+}
+
+.status-completed {
+  background: rgba(40, 167, 69, 0.1);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.3);
+}
+
+.reading-section {
+  background: var(--surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-title i {
+  color: var(--accent-color);
+}
+
+.reading-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.reading-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(0, 122, 255, 0.05);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 122, 255, 0.1);
+}
+
+.reading-item i {
+  color: var(--accent-color);
+  font-size: 1.2rem;
+}
+
+.empty-library {
+  text-align: center;
+  padding: 4rem 2rem;
+}
+
+.empty-content {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.empty-library h2 {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+}
+
+.empty-library p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.empty-benefits {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.benefit-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.benefit-item i {
+  font-size: 1.5rem;
+  color: var(--accent-color);
+}
+
+.browse-btn {
+  background: var(--accent-gradient);
+  color: white;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.browse-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  text-decoration: none;
+  color: white;
+}
+
+/* Policy Section */
+.policy-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+}
+
+.policy-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.policy-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: rgba(0, 122, 255, 0.05);
+  border: 1px solid rgba(0, 122, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.policy-link:hover {
+  background: rgba(0, 122, 255, 0.1);
+  border-color: rgba(0, 122, 255, 0.3);
+  color: var(--accent-color);
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.policy-link i {
+  color: var(--accent-color);
+  font-size: 1.1rem;
+}
+
+.policy-disclaimer {
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(0, 122, 255, 0.03);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(0, 122, 255, 0.08);
+}
+
+.policy-disclaimer p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.policy-disclaimer i {
+  color: var(--accent-color);
+  font-size: 1rem;
+}
+
+/* Developer Credits */
+.developer-credits {
+  text-align: center;
+  margin-top: 3rem;
+  padding: 2rem;
+  background: rgba(0, 122, 255, 0.05);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 122, 255, 0.2);
+}
+
+.developer-credits p {
+  margin: 0 0 1rem 0;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.developer-credits strong {
+  color: var(--accent-color);
+}
+
+.developer-bio {
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  line-height: 1.4;
+}
+
+.developer-bio::before {
+  content: "💡 ";
+  margin-right: 0.25rem;
+}
+
+.developer-social {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.developer-social a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 122, 255, 0.1);
+  color: var(--accent-color);
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.developer-social a:hover {
+  background: var(--accent-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .library-title {
+    font-size: 2rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .library-stats {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-item {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .book-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .empty-benefits {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .reading-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-links {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .policy-disclaimer p {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .library-header {
+    padding: 2rem 0;
+  }
+
+  .header-content {
+    padding: 0 1rem;
+  }
+
+  .library-content {
+    padding: 2rem 1rem;
+  }
+
+  .books-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .library-book-card {
+    max-width: 100%;
+  }
+
+  .policy-links {
+    grid-template-columns: 1fr;
+  }
+
+  .policy-link {
+    justify-content: center;
+    text-align: center;
+  }
+}
+</style>
+
+<script>
+function readBook(title) {
+    showNotification(`Opening "${title}" in reader...`, 'success');
+    // Simulate book opening with loading animation
+    setTimeout(() => {
+        showNotification('Book reader feature coming soon! 📚', 'info');
+    }, 1500);
+}
+
+function downloadBook(title) {
+    showNotification(`Preparing "${title}" for download...`, 'success');
+    // Simulate download progress
+    setTimeout(() => {
+        showNotification('Download feature coming soon! 📱', 'info');
+    }, 1500);
+}
+
+// Enhanced hover effects and animations
+document.addEventListener('DOMContentLoaded', function() {
+    const bookCards = document.querySelectorAll('.library-book-card');
+    
+    // Add staggered animation on page load
+    bookCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+
+    // Add reading progress indicator (simulated)
+    bookCards.forEach(card => {
+        const bookInfo = card.querySelector('.book-info');
+        const progressBar = document.createElement('div');
+        progressBar.className = 'reading-progress';
+        progressBar.innerHTML = `
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: ${Math.floor(Math.random() * 100)}%"></div>
+            </div>
+            <span class="progress-text">Reading Progress</span>
+        `;
+        bookInfo.appendChild(progressBar);
+    });
+
+    // Add CSS for progress bars
+    const progressStyles = document.createElement('style');
+    progressStyles.textContent = `
+        .reading-progress {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--background-secondary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            transition: width 0.8s ease;
+        }
+        .progress-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+    `;
+    document.head.appendChild(progressStyles);
+});
+
+// Simple notification function
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // Add notification styles
+    notification.style.cssText = `
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#007bff'};
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-lg);
+        z-index: 9999;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        max-width: 300px;
+    `;
+    
+    notification.querySelector('.notification-content').style.cssText = `
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Auto remove after 4 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 4000);
+}
+
+// Policy modal function
+function showPolicy(policyType) {
+    const policies = {
+        privacy: {
+            title: 'Privacy Policy',
+            icon: 'fas fa-shield-alt',
+            content: `
+                <h3>📍 Information We Collect</h3>
+                <p>We collect information you provide directly, such as account details and purchase history.</p>
+                
+                <h3>🔒 How We Use Information</h3>
+                <p>Your information is used to provide services, process transactions, and improve user experience.</p>
+                
+                <h3>🛡️ Data Protection</h3>
+                <p>We implement industry-standard security measures to protect your personal information.</p>
+                
+                <h3>📧 Contact</h3>
+                <p>For privacy concerns, contact us at privacy@pageforge.com</p>
+            `
+        },
+        terms: {
+            title: 'Terms of Service',
+            icon: 'fas fa-file-contract',
+            content: `
+                <h3>📋 Service Agreement</h3>
+                <p>By using PageForge, you agree to these terms and our acceptable use policy.</p>
+                
+                <h3>📚 Digital Content</h3>
+                <p>Books purchased are for personal use. Sharing or redistribution is prohibited.</p>
+                
+                <h3>💳 Payment Terms</h3>
+                <p>All sales are final unless covered by our refund policy. Prices are in Indian Rupees (₹).</p>
+                
+                <h3>⚖️ Limitation of Liability</h3>
+                <p>Service provided "as is" with standard limitations on liability.</p>
+            `
+        },
+        refund: {
+            title: 'Refund Policy',
+            icon: 'fas fa-undo',
+            content: `
+                <h3>💰 Refund Eligibility</h3>
+                <p>Refunds available within 7 days of purchase for technical issues or accidental purchases.</p>
+                
+                <h3>🔄 Refund Process</h3>
+                <p>Contact support with order details. Refunds processed within 3-5 business days.</p>
+                
+                <h3>❌ Non-Refundable</h3>
+                <p>Books that have been downloaded or accessed are generally non-refundable.</p>
+                
+                <h3>📞 Contact Support</h3>
+                <p>Email: refunds@pageforge.com | Response time: 24-48 hours</p>
+            `
+        },
+        cookies: {
+            title: 'Cookie Policy',
+            icon: 'fas fa-cookie-bite',
+            content: `
+                <h3>🍪 What Are Cookies</h3>
+                <p>Small text files stored on your device to enhance your browsing experience.</p>
+                
+                <h3>📊 Types We Use</h3>
+                <p>Essential cookies for functionality, analytics for improvement, and preference cookies.</p>
+                
+                <h3>⚙️ Managing Cookies</h3>
+                <p>You can control cookies through your browser settings. Some features may require cookies.</p>
+                
+                <h3>🔄 Updates</h3>
+                <p>This policy may be updated. Check regularly for changes.</p>
+            `
+        },
+        dmca: {
+            title: 'DMCA Policy',
+            icon: 'fas fa-copyright',
+            content: `
+                <h3>©️ Copyright Protection</h3>
+                <p>We respect intellectual property rights and comply with DMCA requirements.</p>
+                
+                <h3>📝 Filing a Claim</h3>
+                <p>Send DMCA notices to dmca@pageforge.com with required information and good faith statement.</p>
+                
+                <h3>🔍 Review Process</h3>
+                <p>We investigate all valid claims and take appropriate action including content removal.</p>
+                
+                <h3>⚖️ Counter-Notices</h3>
+                <p>Users may file counter-notices if they believe content was removed in error.</p>
+            `
+        },
+        support: {
+            title: 'Support Center',
+            icon: 'fas fa-headset',
+            content: `
+                <h3>🎧 Get Help</h3>
+                <p>Our support team is here to help with any questions or technical issues.</p>
+                
+                <h3>📧 Contact Methods</h3>
+                <p>Email: support@pageforge.com<br>
+                Response time: 24 hours<br>
+                Live chat: Available 9 AM - 6 PM IST</p>
+                
+                <h3>❓ Common Issues</h3>
+                <p>Download problems, account access, payment issues, and reading app support.</p>
+                
+                <h3>📚 Knowledge Base</h3>
+                <p>Check our FAQ section for quick answers to common questions.</p>
+            `
+        }
+    };
+
+    const policy = policies[policyType];
+    if (!policy) return;
+
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'policy-modal';
+    modal.innerHTML = `
+        <div class="policy-modal-content">
+            <div class="policy-modal-header">
+                <h2><i class="${policy.icon}"></i> ${policy.title}</h2>
+                <button class="policy-close" onclick="closePolicy()">&times;</button>
+            </div>
+            <div class="policy-modal-body">
+                ${policy.content}
+            </div>
+            <div class="policy-modal-footer">
+                <button class="btn-close" onclick="closePolicy()">Close</button>
+            </div>
+        </div>
+    `;
+
+    // Add modal styles
+    const modalStyles = `
+        .policy-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            backdrop-filter: blur(5px);
+        }
+        .policy-modal-content {
+            background: var(--background-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+        .policy-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .policy-modal-header h2 {
+            margin: 0;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.3rem;
+        }
+        .policy-modal-header i {
+            color: var(--accent-color);
+        }
+        .policy-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0.25rem;
+            line-height: 1;
+        }
+        .policy-close:hover {
+            color: var(--text-primary);
+        }
+        .policy-modal-body {
+            padding: 2rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .policy-modal-body h3 {
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.75rem 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .policy-modal-body h3:first-child {
+            margin-top: 0;
+        }
+        .policy-modal-body p {
+            margin: 0.5rem 0;
+        }
+        .policy-modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            text-align: right;
+        }
+        .btn-close {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-close:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+    `;
+
+    // Add styles if not already added
+    if (!document.getElementById('policy-modal-styles')) {
+        const styleSheet = document.createElement('style');
+        styleSheet.id = 'policy-modal-styles';
+        styleSheet.textContent = modalStyles;
+        document.head.appendChild(styleSheet);
+    }
+
+    document.body.appendChild(modal);
+    
+    // Animate in
+    modal.style.opacity = '0';
+    setTimeout(() => {
+        modal.style.transition = 'opacity 0.3s ease';
+        modal.style.opacity = '1';
+    }, 10);
+}
+
+function closePolicy() {
+    const modal = document.querySelector('.policy-modal');
+    if (modal) {
+        modal.style.opacity = '0';
+        setTimeout(() => {
+            if (modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        }, 300);
+    }
+}
+</script>
+{% endblock %}
